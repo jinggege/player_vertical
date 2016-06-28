@@ -11,6 +11,7 @@ package  com.laifeng.controls
 	import com.laifeng.view.loading.LoadingView;
 	import com.laifeng.view.log.LogView;
 	import com.laifeng.view.plugs.PluginView;
+	import com.laifeng.view.video.Video2;
 	import com.laifeng.view.video.VideoV;
 	
 	import flash.display.BitmapData;
@@ -124,7 +125,8 @@ package  com.laifeng.controls
 			
 			_btnSwitchRoom.addEventListener(MouseEvent.CLICK,switchRoomHandler);
 			
-			addUI(UIKey.UI_VIDEO,                new VideoV());
+			//addUI(UIKey.UI_VIDEO,                new VideoV());
+			addUI(UIKey.UI_VIDEO,                new Video2());
 			addUI(UIKey.UI_LOADING,           new LoadingView());
 			addUI(UIKey.UI_ERROR,    		     new ErrorView());
 			addUI(UIKey.UI_LOG,                     new LogView());

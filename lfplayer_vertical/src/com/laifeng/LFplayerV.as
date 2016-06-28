@@ -15,6 +15,7 @@ package com.laifeng
     
     import lf.media.core.util.Console;
     import lf.media.core.util.EnterframeTimer;
+    
 	
 	/**********************************************************
 	 * 播放器入口
@@ -36,6 +37,7 @@ package com.laifeng
 			Security.allowInsecureDomain("*");
 			Console.isDebug = false;
 			setStageMode();
+			
 			
 			var flashvars:Object = this.loaderInfo.parameters;
 			var jsNameSpace:String = flashvars["callbackNamespace"];
