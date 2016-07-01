@@ -95,7 +95,7 @@ package com.laifeng.view.log
 		{
 			_bg.graphics.clear();
 			_bg.graphics.beginFill(0x000000,0.5);
-			_bg.graphics.drawRect(0,0,LiveConfig.get.defaultWidth,LiveConfig.get.defaultHeight);
+			_bg.graphics.drawRect(0,0,LiveConfig.get.defaultWidth,LiveConfig.get.defaultHeight-50);
 			_bg.graphics.endFill();
 			_btnClose.x = LiveConfig.get.defaultWidth - _btnClose.width;
 		}

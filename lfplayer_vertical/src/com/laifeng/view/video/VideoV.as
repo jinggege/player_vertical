@@ -16,7 +16,10 @@ package com.laifeng.view.video
     import flash.display.DisplayObject;
     import flash.display.Sprite;
     import flash.events.IOErrorEvent;
+    import flash.events.MouseEvent;
     import flash.events.NetStatusEvent;
+    import flash.events.TimerEvent;
+    import flash.utils.Timer;
     
     import lf.media.core.data.ErrorCode;
     import lf.media.core.util.Console;
@@ -61,6 +64,9 @@ package com.laifeng.view.video
 			EnterframeTimer.get.addListener(
 				new EnterframeTimerVO(ListenerType.TIME_NS_UPDATA,
 					nsInfoListener,10));
+			
+			_skipTimer.addEventListener(TimerEvent.TIMER,skipHandler);
+			_skipTimer.start();
 		}
 		
 		
@@ -86,8 +92,8 @@ package com.laifeng.view.video
 				_cVideo = new LfNomalVideo(callbackByVideo);
 				_cVideo.creat(null);
 				
-				_cVideo.netStream.bufferTime        = 1;
-				_cVideo.netStream.bufferTimeMax = 5 ;
+				_cVideo.netStream.bufferTime        = 3;
+				_cVideo.netStream.bufferTimeMax = 10 ;
 				_cVideo.netStream.inBufferSeek      = true;
 				_cVideo.netStream.checkPolicyFile  = true;
 				_cVideo.netStream.removeEventListener(NetStatusEvent.NET_STATUS,netStartHandler);
@@ -95,6 +101,7 @@ package com.laifeng.view.video
 				
 				_layerVideo.addChild(DisplayObject(_cVideo));
 				LiveConfig.get.streamLogData.videoTime = Util.getTime;
+				
 		}
 		
 		
@@ -179,6 +186,8 @@ package com.laifeng.view.video
 			UIManage.get.closeUI(UIKey.UI_LOADING);
 			UIManage.get.closeUI(UIKey.UI_CONTROLBAR);
 			this._buffEmptyDuration = -1;
+			_skipTimer.stop();
+			_skipTimer.removeEventListener(TimerEvent.TIMER,skipHandler);
         }
         
 		
@@ -231,11 +240,7 @@ package com.laifeng.view.video
 					break;
 				case "NetStream.Seek.InvalidTime":
 					var frame:uint = data.data.info.details;
-					
-					if(_lastSeek != frame){
-						_cVideo.netStream.seek(frame);
-					}
-					
+					trace("seek=====",frame);
 					_lastSeek = frame;
 					
 					break;
@@ -312,6 +317,13 @@ package com.laifeng.view.video
 		
 		/**播放  暂停 切换*/
 		private function changePauseHandler(event:MEvent):void{
+			
+			
+			_cVideo.netStream.seek(_cVideo.netStream.time+1);
+			_cVideo.netStream.bufferTime = 0;
+			return;
+			
+			
 			if(_cVideo == null) return;
 			var status:String  =event.data as String;
 			switch(status){
@@ -352,6 +364,16 @@ package com.laifeng.view.video
 			}
 			*/
 			
+			
+			if(_cVideo.netStream.bufferLength<1.5){
+				_cVideo.netStream.bufferTime = 1;
+			}
+			
+			if(_cVideo.netStream.bufferLength>1.5){
+				_cVideo.netStream.bufferTime = 2;
+			}
+			
+			
 				if(Util.getTime - _lastCvTime>=_cvLogDelay){
 					LiveConfig.get.streamLogData.currBfeCount = _cbec;
 					_reportDataModule.sendCVLog();
@@ -369,14 +391,6 @@ package com.laifeng.view.video
 						}
 						
 						
-						/**突然被注入大量数据处理*/
-						if(_cVideo.netStream.bufferLength >=  this._buffMax){
-							if(!_isPause){
-								_cVideo.netStream.seek(_cVideo.netStream.time + 60);
-								_seekCount++;
-								LiveConfig.get.streamLogData.sCount = _seekCount;
-							}
-						}
 				}
 				
 				if(_cVideo.netStream.bufferLength > LiveConfig.get.streamLogData.bufferMaxLength){
@@ -397,6 +411,22 @@ package com.laifeng.view.video
 					}
 				}
 			
+		}
+		
+		
+		
+		private var _skipCount:int = 0;
+		private function skipHandler(event:TimerEvent):void{
+			if(_cVideo == null) return;
+			if(_cVideo.netStream==null) return;
+			if( _cVideo.netStream.bufferLength>2.8){
+				
+				if(_cVideo.netStream.time <10) return;
+				_skipCount++;
+				_cVideo.netStream.seek(_cVideo.netStream.time+1);
+				trace("skip = ",_skipCount);
+				
+			}
 		}
 		
 		
@@ -481,6 +511,7 @@ package com.laifeng.view.video
 		private var _buffMax:int    = 20;
 		private var _lastSeek:uint  = 0;
 		private var _seekCount:int = 0;
+		private var _skipTimer:Timer = new Timer(2000);
 		
 		
 		
