@@ -20,7 +20,7 @@ package com.laifeng.view.log
 			_tfNsInfo.wordWrap = true;
 			this.addChild(_tfNsInfo);
 			addChild(_statusBuffer);
-			_statusBuffer.y = 190;
+			_statusBuffer.y = 260;
 		}
 		
 		public function changeScreen(w:int,h:int):void

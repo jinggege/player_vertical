@@ -16,10 +16,11 @@ package com.laifeng.view.video
     import flash.display.DisplayObject;
     import flash.display.Sprite;
     import flash.events.IOErrorEvent;
-    import flash.events.MouseEvent;
     import flash.events.NetStatusEvent;
     import flash.events.TimerEvent;
     import flash.utils.Timer;
+    import flash.utils.clearTimeout;
+    import flash.utils.setTimeout;
     
     import lf.media.core.data.ErrorCode;
     import lf.media.core.util.Console;
@@ -32,6 +33,10 @@ package com.laifeng.view.video
     import lf.media.core.video.LfNomalVideo;
     
     public class VideoV extends Sprite implements IUI{
+		
+		/**最大延迟*/
+		private const MAX_DELAY:int = 2;
+		
 		
         public function VideoV() {
 			super();
@@ -64,9 +69,6 @@ package com.laifeng.view.video
 			EnterframeTimer.get.addListener(
 				new EnterframeTimerVO(ListenerType.TIME_NS_UPDATA,
 					nsInfoListener,10));
-			
-			_skipTimer.addEventListener(TimerEvent.TIMER,skipHandler);
-			_skipTimer.start();
 		}
 		
 		
@@ -92,8 +94,8 @@ package com.laifeng.view.video
 				_cVideo = new LfNomalVideo(callbackByVideo);
 				_cVideo.creat(null);
 				
-				_cVideo.netStream.bufferTime        = 3;
-				_cVideo.netStream.bufferTimeMax = 10 ;
+				_cVideo.netStream.bufferTime        = 1;
+				_cVideo.netStream.bufferTimeMax = 1.5 ;
 				_cVideo.netStream.inBufferSeek      = true;
 				_cVideo.netStream.checkPolicyFile  = true;
 				_cVideo.netStream.removeEventListener(NetStatusEvent.NET_STATUS,netStartHandler);
@@ -186,8 +188,13 @@ package com.laifeng.view.video
 			UIManage.get.closeUI(UIKey.UI_LOADING);
 			UIManage.get.closeUI(UIKey.UI_CONTROLBAR);
 			this._buffEmptyDuration = -1;
-			_skipTimer.stop();
-			_skipTimer.removeEventListener(TimerEvent.TIMER,skipHandler);
+			
+			
+			if(_loadTimeout != 0){
+				clearTimeout(_loadTimeout);
+				_loadTimeout = 0;
+			}
+			
         }
         
 		
@@ -197,7 +204,6 @@ package com.laifeng.view.video
 			_cVideo.pause();
         }
         
-		
 		private function callbackByVideo(data:CallbackData):void{
 			Console.log("NetStatus=",data.callbackType,"  data=",data.data);
 			
@@ -213,6 +219,12 @@ package com.laifeng.view.video
 				case "NetStream.Play.Stop":
 					break;
 				case "NetStream.Buffer.Full":
+					_isBufferFull = true;
+					if(_delayEmptyT !=0){
+						clearTimeout(_delayEmptyT);
+						_delayEmptyT = 0;
+					}
+					
 					this._buffEmptyDuration = -1;
 					if(_isFirstBufferFull){
 						_reportDataModule.sendStreamSucceedReport({d:Util.getTime - LiveConfig.serviceUseTime});
@@ -230,22 +242,34 @@ package com.laifeng.view.video
 					UIManage.get.closeUI(UIKey.UI_LOADING);
 					break;
 				case "NetStream.Buffer.Empty":
+					_isBufferFull = false;
 					_buffEmptyDuration = Util.getTime;
-					_cbec++;
-					_lastNsTime = _cVideo.netStream.time;
-					LiveConfig.get.streamLogData.addBufferEmptyCount();
 					
+					_lastNsTime = _cVideo.netStream.time;
 					this.buffEmptyPoint = Util.getTime;
-					UIManage.get.openUI(UIKey.UI_LOADING);
+					
+					_cbec++;
+					if(_delayEmptyT !=0){
+						clearTimeout(_delayEmptyT);
+						_delayEmptyT = 0;
+					}
+					
+					_delayEmptyT = setTimeout(function():void{
+						//_cbec++;
+						LiveConfig.get.streamLogData.addBufferEmptyCount();
+						UIManage.get.closeUI(UIKey.UI_LOADING);
+						clearTimeout(_delayEmptyT);
+						_delayEmptyT = 0;
+					},500);
+					
+					
 					break;
 				case "NetStream.Seek.InvalidTime":
 					var frame:uint = data.data.info.details;
 					trace("seek=====",frame);
-					_lastSeek = frame;
-					
 					break;
 				case "NetStream.Buffer.Flush":
-					UIManage.get.openUI(UIKey.UI_LOADING);
+					UIManage.get.closeUI(UIKey.UI_LOADING);
 					break;
 				
 				case "NetStream.Play.InsufficientBW":
@@ -317,13 +341,6 @@ package com.laifeng.view.video
 		
 		/**播放  暂停 切换*/
 		private function changePauseHandler(event:MEvent):void{
-			
-			
-			_cVideo.netStream.seek(_cVideo.netStream.time+1);
-			_cVideo.netStream.bufferTime = 0;
-			return;
-			
-			
 			if(_cVideo == null) return;
 			var status:String  =event.data as String;
 			switch(status){
@@ -350,29 +367,6 @@ package com.laifeng.view.video
 			LiveConfig.get.streamLogData.decodedFrames = _cVideo.netStream.decodedFrames;
 			LiveConfig.get.streamLogData.currFps 				 = _cVideo.netStream.currentFPS;
 			
-			/*
-			if(_cVideo.mediaType == MediaType.VIDEO_P2P){
-					try{
-						LiveConfig.get.streamLogData.peerStatus         = _cVideo.netStream["getPeerStatus"]();
-						LiveConfig.get.streamLogData.playStatus          = _cVideo.netStream["getPlayStatus"]();
-						LiveConfig.get.streamLogData.setDelay             = _cVideo.netStream["getCloseDelayTime"]();
-						LiveConfig.get.streamLogData.localconntionId = _cVideo.netStream["getLocalConnectionId"]();
-						LiveConfig.get.streamLogData.lastPlayId           = _cVideo.netStream["getCurrPlayIdSwitchClarity"]();
-					}catch(error:Error){
-						//todo
-					}
-			}
-			*/
-			
-			
-			if(_cVideo.netStream.bufferLength<1.5){
-				_cVideo.netStream.bufferTime = 1;
-			}
-			
-			if(_cVideo.netStream.bufferLength>1.5){
-				_cVideo.netStream.bufferTime = 2;
-			}
-			
 			
 				if(Util.getTime - _lastCvTime>=_cvLogDelay){
 					LiveConfig.get.streamLogData.currBfeCount = _cbec;
@@ -390,7 +384,6 @@ package com.laifeng.view.video
 								}
 						}
 						
-						
 				}
 				
 				if(_cVideo.netStream.bufferLength > LiveConfig.get.streamLogData.bufferMaxLength){
@@ -405,12 +398,25 @@ package com.laifeng.view.video
 				}
 				
 				
-				if(_cVideo.netStream.bufferLength > 1){
+				if(_isBufferFull){
 					if(UIManage.get.getUI(UIKey.UI_LOADING).uiState == UIManage.UI_STATE_OPEN){
 						UIManage.get.closeUI(UIKey.UI_LOADING);
 					}
 				}
-			
+				
+				
+				if(!_isBufferFull){
+					if(_cVideo.netStream.decodedFrames>_lastDecodeFrame){
+						if(UIManage.get.getUI(UIKey.UI_LOADING).uiState == UIManage.UI_STATE_OPEN){
+							UIManage.get.closeUI(UIKey.UI_LOADING);
+							_isBufferFull = true;
+						}
+					}
+				}
+				
+				
+				
+				_lastDecodeFrame = _cVideo.netStream.decodedFrames;
 		}
 		
 		
@@ -419,14 +425,20 @@ package com.laifeng.view.video
 		private function skipHandler(event:TimerEvent):void{
 			if(_cVideo == null) return;
 			if(_cVideo.netStream==null) return;
-			if( _cVideo.netStream.bufferLength>2.8){
+			if( _cVideo.netStream.bufferLength>MAX_DELAY){
 				
 				if(_cVideo.netStream.time <10) return;
 				_skipCount++;
-				_cVideo.netStream.seek(_cVideo.netStream.time+1);
-				trace("skip = ",_skipCount);
+				var skipStartT:uint = _cVideo.netStream.time;
+				var skipStartB:Number = _cVideo.netStream.bufferLength;
+				_cVideo.netStream.inBufferSeek = true;
+				_cVideo.netStream.seek(_cVideo.netStream.time+0.5);
 				
+				trace("skip = ",_skipCount,"  skip start time=",skipStartT," skip end time=",_cVideo.netStream.time);
+				trace("skip start buffer len=",skipStartB,"        skip end buffer len=",_cVideo.netStream.bufferLength);
+				trace("_____________________________________________");
 			}
+			
 		}
 		
 		
@@ -453,7 +465,7 @@ package com.laifeng.view.video
 			}
 			
 			_cVideo = null;
-			
+			_skipCount = 0;
 			LiveConfig.get.streamLogData.clearData();
 		}
 		
@@ -492,12 +504,9 @@ package com.laifeng.view.video
 		private var _isFirstBufferFull:Boolean = true;
 		/**从开始拉流 到 第一次buffer full 所用时间  单位 ms*/
 		private var _pullStreamUseTime:Number = 0;
-		/**当前下载速度    kb/s*/
-		private var _currDownSpeed:int = 0;
 		/**当前buffer 是否空*/
 		private var _lastNsTime:Number     = 0;
 		private var _lastDecodeFrame:uint = 0;
-		private var _safariBlockCount:int    = 0;
 		private var _cbec:int = 0; //1分钟内buffer empty 次数
 		
 		private var _streamWidth:int = 320;
@@ -505,13 +514,15 @@ package com.laifeng.view.video
 		/**buffer 为空持续时间*/
 		private var _buffEmptyDuration:Number = -1;
 		private var repullDelay:int = 30000 //重新拉流间隔   单位 ms
-		private var showLoadingDelay:int = 1000; //出现loading间隔   单位 ms
 		private var buffEmptyPoint:Number = 0;
 		private var _avgFrame:int = 15;
 		private var _buffMax:int    = 20;
-		private var _lastSeek:uint  = 0;
 		private var _seekCount:int = 0;
-		private var _skipTimer:Timer = new Timer(2000);
+		private var _loadTimeout:uint = 0;
+		/**延迟 执行buffer emprt*/
+		private var _delayEmptyT:uint = 0;
+		/**buffer 是否是满的 */
+		private var _isBufferFull:Boolean = false;
 		
 		
 		

@@ -50,7 +50,7 @@ package com.laifeng
 			
 			LFExtenrnalInterface.get.start();
 			
-			UIManage.get.start(this.stage);
+			//UIManage.get.start(this.stage);
 			DataModule.get.init();
 			EnterframeTimer.get.start(this.stage);
 			
@@ -59,9 +59,9 @@ package com.laifeng
         }
 		
         public function init(option : Object):int{
-			
 			_dmCenter = DataModule.get.getModule(ModuleKey.DM_LIVECORE) as DMCenter;
 			_dmCenter.initConfig(option);
+			UIManage.get.start(this.stage);
 			UIManage.get.playerInited();
 			
 			LiveConfig.liveStatus = 0;
@@ -75,7 +75,6 @@ package com.laifeng
             stage.tabChildren = false;
             stage.showDefaultContextMenu = false;
         }
-		
 		
 		
 		private var _dmCenter:DMCenter;

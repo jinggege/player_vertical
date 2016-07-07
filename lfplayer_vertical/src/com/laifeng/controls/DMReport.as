@@ -201,6 +201,7 @@ package  com.laifeng.controls
 			url += "&s=" + getStreamId();
 			url += "&sid=" + sessionId;
 			url += "&reason=" + data["msg"];
+			url += "&pl_addr="   + getStreamUrl();
 			url += "&ec=3000";
 			url += "&ct="   + "0";
 			url += "&ust=" + "pc";

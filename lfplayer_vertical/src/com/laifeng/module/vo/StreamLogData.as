@@ -41,8 +41,10 @@ package com.laifeng.module.vo
 		public var bufferEmptyTime:uint = 0;
 		/**低帧率运行时间*/
 		public var lowFrameTime:uint = 0;
-		
-		public var sCount:int = 0;
+		/**拉播放地址所用时间*/
+		public var pullUrlTime:int = 0;
+		/**拉流所用时间*/
+		public var pullStreamTime:int = 0;
 		
 		
 		
@@ -50,6 +52,8 @@ package com.laifeng.module.vo
 			lowFrameTime = 0;
 			bufferEmptyTime = 0;
 			bufferMaxLength = 0;
+			_bytesLoaded = 0;
+			_lasterLoaded = 0;
 		}
 		
 		
@@ -115,14 +119,13 @@ package com.laifeng.module.vo
 		
 		
 		public function set bytesLoaded(value:Number):void{
-			
-			_bytesLoaded = Number((value/1024).toFixed(2));
-			_speedInfo.speed = _bytesLoaded - _lasterLoaded;
-			_lasterLoaded = _bytesLoaded;
+			_lasterLoaded= _lasterLoaded==0? value:_lasterLoaded;
+			_bytesLoaded = value - _lasterLoaded;
+			_lasterLoaded = value;
 		}
 		
 		public function get bytesLoaded():Number{
-			return _bytesLoaded/1024;
+			return Number((_bytesLoaded/1024/1024).toFixed(3));
 		}
 		
 		
@@ -178,40 +181,40 @@ package com.laifeng.module.vo
 		
 		public function get videoMsg():String{
 			_html = "";
-			_html += "<font size='12px' color='#FFFFFF'><b>[bps.............] : </b></font>";
+			_html += "<font size='12px' color='#FFFFFF'><b>[bps] : </b></font>";
 			_html += "<font size='12px' color='#33FF33'><b>【  "+bps+" 】</b></font>";
 			
-			_html += "<font size='12px' color='#FFFFFF'><b>[fps..........] : </b></font>";
+			_html += "<font size='12px' color='#FFFFFF'><b>[fps] : </b></font>";
 			_html += "<font size='12px' color='#33FF33'><b>【  "+currFps+" 】</b></font>"+"\n";
 			
-			_html += "<font size='12px' color='#FFFFFF'><b>[stream id...] : </b></font>";
+			_html += "<font size='12px' color='#FFFFFF'><b>[stream id] : </b></font>";
 			_html += "<font size='12px' color='#33FF33'><b>【 "+streamID+" 】</b></font>"+"\n";
 			
 			_html += "<font size='12px' color='#FFFFFF'><b>[nsTime......] : </b></font>";
-			_html += "<font size='12px' color='#33FF33'><b>【 "+nsTime+" 】</b></font>";
+			_html += "<font size='12px' color='#33FF33'><b>【 "+nsTime+" 】</b></font>"+"\n";
 			
 			
 			_html += "<font size='12px' color='#FFFFFF'><b>[decodedFrames] : </b></font>";
 			_html += "<font size='12px' color='#33FF33'><b>【"+decodedFrames+"】</b></font>"+"\n";
 			
 			
-			_html += "<font size='12px' color='#FFFFFF'><b>[videoWH....] : </b></font>";
-			_html += "<font size='12px' color='#33FF33'><b>【 "+videoWH+" 】</b></font>";
+			_html += "<font size='12px' color='#FFFFFF'><b>[videoWH] : </b></font>";
+			_html += "<font size='12px' color='#33FF33'><b>【 "+videoWH+" 】</b></font>"+"\n";
 			
 			_html += "<font size='12px' color='#FFFFFF'><b>[streamWH] : </b></font>";
 			_html += "<font size='12px' color='#33FF33'><b>【 "+streamWH+" 】</b></font>"+"\n";
 			
 			_html += "<font size='12px' color='#FFFFFF'><b>[bufferTime] : </b></font>";
-			_html += "<font size='12px' color='#33FF33'><b>【 "+bufferTime+" 】</b></font>";
+			_html += "<font size='12px' color='#33FF33'><b>【 "+bufferTime+" 】</b></font>"+"\n";
 			
 			_html += "<font size='12px' color='#FFFFFF'><b>[bufferLength] : </b></font>";
 			_html += "<font size='12px' color='#33FF33'><b>【 "+bufferLength+" 】</b></font>"+"\n";
 			
-			_html += "<font size='12px' color='#FFFFFF'><b>[bufferMax..] : </b></font>";
+			_html += "<font size='12px' color='#FFFFFF'><b>[bufferMax] : </b></font>";
 			_html += "<font size='12px' color='#33FF33'><b>【 "+bufferMaxLength+" 】</b></font>"+"\n";
 			
-			_html += "<font size='12px' color='#FFFFFF'><b>[bufferFull..] : </b></font>";
-			_html += "<font size='12px' color='#33FF33'><b>【 "+bufferFullCount+" 】</b></font>";
+			_html += "<font size='12px' color='#FFFFFF'><b>[bufferFull] : </b></font>";
+			_html += "<font size='12px' color='#33FF33'><b>【 "+bufferFullCount+" 】</b></font>"+"\n";
 			
 			_html += "<font size='12px' color='#FFFFFF'><b>[bufferEmpty] : </b></font>";
 			_html += "<font size='12px' color='#33FF33'><b>【 "+bufferEmptyCount+" 】</b></font>"+"\n";
@@ -222,16 +225,15 @@ package com.laifeng.module.vo
 			_html += "<font size='12px' color='#FFFFFF'><b>[bytesLoaded] : </b></font>";
 			_html += "<font size='12px' color='#33FF33'><b>【 "+bytesLoaded+" 】</b></font>"+"\n";
 			
-			_html += "<font size='12px' color='#FFFFFF'><b>[skipCount..] : </b></font>";
-			_html += "<font size='12px' color='#33FF33'><b>【 "+sCount+" 】</b></font>"+"\n";
+			_html += "<font size='12px' color='#FFFFFF'><b>[pull url time] : </b></font>";
+			_html += "<font size='12px' color='#33FF33'><b>【 "+pullUrlTime+"ms 】</b></font>"+"\n";
+			
+			_html += "<font size='12px' color='#FFFFFF'><b>[pull stream time] : </b></font>";
+			_html += "<font size='12px' color='#33FF33'><b>【 "+pullStreamTime+"ms 】</b></font>"+"\n";
 			
 			return _html;
 		}
 		
-		
-		public function get downSpeed():String{
-			return _speedInfo.getSpeed();
-		}
 		
 		public function get peerInfo():String{
 			_html = "";
@@ -240,15 +242,12 @@ package com.laifeng.module.vo
 		}
 		
 		
-		
 		private var _videoTime:Number = 0;
 		private var _useP2P:String       = "";
 		private var _sdkVersion:String = "";
 		private var _delay:String            = "";
 		private var _html:String = "";
 		private var _bytesLoaded:Number = 0;
-		private var _downSpeed:Number = 0;
-		private var _speedInfo:LoadSpeedInfo = new LoadSpeedInfo();
 		private var _lasterLoaded:Number = 0;
 		private var _currBufferEmptyCount:int = 0;
 		
@@ -263,43 +262,5 @@ package com.laifeng.module.vo
 
 
 
-
-
-class LoadSpeedInfo{
-	
-	
-	public function set speed(value:Number):void{
-		_currentSpeed = value;
-		
-		if(count >=300){
-			count = 0;
-			_speedCount = 0;
-		}
-		
-		_speedCount += value;
-		count++;
-	}
-		
-		
-	public function getSpeed():String{
-		
-		return (_speedCount/count).toFixed(2);
-	}
-	
-	
-	public function getCurrentSpeed():String{
-		return _currentSpeed.toFixed(2);
-	}
-	
-	
-	
-	private var _speedCount:Number = 0;
-	private var count:int = 0;
-	
-	private var _currentSpeed:Number = 0;
-	
-		
-	
-}
 
 

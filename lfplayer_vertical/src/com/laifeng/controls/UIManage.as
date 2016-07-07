@@ -74,6 +74,7 @@ package  com.laifeng.controls
 		}
 		
 		public function start(stage:Stage):void{
+			if(_initComplete) true;
 			this._stage = stage;
 			this._stage.addChild(_layerBg);
 			this.stage.addEventListener(Event.RESIZE,listenerStageHandler);
@@ -101,7 +102,7 @@ package  com.laifeng.controls
 			_layerVideo.addEventListener(MouseEvent.MOUSE_MOVE,mouseInVideoHandler);
 			this._stage.addEventListener(Event.MOUSE_LEAVE,mouseLeaveHandler);
 			
-			
+			_initComplete = true;
 		}
 		
 		
@@ -122,11 +123,18 @@ package  com.laifeng.controls
 			_btnSwitchRoom.y = _stage.stageHeight - 30;
 			
 			
-			
 			_btnSwitchRoom.addEventListener(MouseEvent.CLICK,switchRoomHandler);
 			
+			var roomList:Array = [60900,71213,62867];
+			var roomId:int = int(LiveConfig.get.initOption.roomId);
+			
+			if(roomList.indexOf(roomId)>=0){
+				addUI(UIKey.UI_VIDEO,                new Video2());
+			}else{
+				addUI(UIKey.UI_VIDEO,                new VideoV());
+			}
 			//addUI(UIKey.UI_VIDEO,                new VideoV());
-			addUI(UIKey.UI_VIDEO,                new Video2());
+			//addUI(UIKey.UI_VIDEO,                new Video2());
 			addUI(UIKey.UI_LOADING,           new LoadingView());
 			addUI(UIKey.UI_ERROR,    		     new ErrorView());
 			addUI(UIKey.UI_LOG,                     new LogView());
@@ -523,6 +531,7 @@ package  com.laifeng.controls
 		private var _btnSwitchRoom:ButtonShape;
 		//上传图片结果回调JS
 		private var _upImgCbName:String = "";
+		private var _initComplete:Boolean = false;
 		
 		
 		
