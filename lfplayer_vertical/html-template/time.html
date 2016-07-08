@@ -1,0 +1,33 @@
+﻿<html>
+<head><head/>
+
+<style type="text/css">
+	p{display:block; font-size:50px; font-weight:bold;}
+
+</style>
+
+<script type="text/javascript" src="res/js/jquery-1.11.3.min.js"></script>
+<body>
+	
+	<p id="time"></p>
+	
+	
+	<script type="text/javascript">
+	
+	$(document).ready(function () {
+			var tiker = setInterval(function(){
+					var d = new Date();
+					var str = d.getHours()+":"+d.getMinutes()+":"+d.getSeconds()+":"+d.getMilliseconds();
+					
+					$('#time').text(str);
+				
+				},100);
+			
+			})
+		
+	</script>
+	
+	
+</body>	
+	
+</html>

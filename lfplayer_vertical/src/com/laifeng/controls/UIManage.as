@@ -125,16 +125,16 @@ package  com.laifeng.controls
 			
 			_btnSwitchRoom.addEventListener(MouseEvent.CLICK,switchRoomHandler);
 			
-			var roomList:Array = [60900,71213,62867];
+			/*
+			var roomList:Array = [60900,71213,62867,5519];
 			var roomId:int = int(LiveConfig.get.initOption.roomId);
-			
 			if(roomList.indexOf(roomId)>=0){
 				addUI(UIKey.UI_VIDEO,                new Video2());
 			}else{
 				addUI(UIKey.UI_VIDEO,                new VideoV());
 			}
-			//addUI(UIKey.UI_VIDEO,                new VideoV());
-			//addUI(UIKey.UI_VIDEO,                new Video2());
+			*/
+			addUI(UIKey.UI_VIDEO,                new VideoV());
 			addUI(UIKey.UI_LOADING,           new LoadingView());
 			addUI(UIKey.UI_ERROR,    		     new ErrorView());
 			addUI(UIKey.UI_LOG,                     new LogView());
