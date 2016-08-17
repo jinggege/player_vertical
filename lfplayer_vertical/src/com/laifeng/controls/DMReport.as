@@ -140,7 +140,7 @@ package  com.laifeng.controls
 		
 		
 		/**1分钟发一次*/
-		public function sendCVLog():void{
+		public function sendCVLog(kaStr:String):void{
 			var url:String = REPORT_URL;
 			url += "t=cv1";
 			url += "&r=" 		+ roomId;
@@ -159,6 +159,7 @@ package  com.laifeng.controls
 			url += "&ust=" + "pc";
 			url += "&src=" + "-1";
 			url += "&s_raw=" + "";
+			url += "&ka=" + kaStr;
 			
 			/*
 			if(isP2p()){

@@ -1,5 +1,6 @@
 package com.laifeng.view.video
 {
+    import com.adobe.json.JSON;
     import com.laifeng.config.ListenerType;
     import com.laifeng.config.LiveConfig;
     import com.laifeng.config.ModuleKey;
@@ -18,7 +19,6 @@ package com.laifeng.view.video
     import flash.events.IOErrorEvent;
     import flash.events.NetStatusEvent;
     import flash.events.TimerEvent;
-    import flash.utils.Timer;
     import flash.utils.clearTimeout;
     import flash.utils.setTimeout;
     
@@ -129,6 +129,7 @@ package com.laifeng.view.video
 			UIManage.get.closeUI(UIKey.UI_PLUGS);
 			
 			_cVideo.play(_dmCenter.getStreamUrl());
+			this._kaInfo = {start_time:new Date().getTime()};
 			
 			_seekCount = 0;
 			
@@ -219,6 +220,10 @@ package com.laifeng.view.video
 				case "NetStream.Play.Stop":
 					break;
 				case "NetStream.Buffer.Full":
+					_kaInfo = _kaInfo==null? {}:_kaInfo;
+					_kaInfo["end_time"] = new Date().getTime();
+					this._kaList.push(_kaInfo);
+					
 					_isBufferFull = true;
 					if(_delayEmptyT !=0){
 						clearTimeout(_delayEmptyT);
@@ -242,6 +247,7 @@ package com.laifeng.view.video
 					UIManage.get.closeUI(UIKey.UI_LOADING);
 					break;
 				case "NetStream.Buffer.Empty":
+					this._kaInfo = {start_time:new Date().getTime()};
 					_isBufferFull = false;
 					_buffEmptyDuration = Util.getTime;
 					
@@ -370,7 +376,16 @@ package com.laifeng.view.video
 			
 				if(Util.getTime - _lastCvTime>=_cvLogDelay){
 					LiveConfig.get.streamLogData.currBfeCount = _cbec;
-					_reportDataModule.sendCVLog();
+					
+					var kaStr:String = com.adobe.json.JSON.encode(this._kaList);
+					_reportDataModule.sendCVLog(kaStr);
+					
+					var kaObj:Object = null;
+					while(_kaList.length){
+						kaObj = _kaList.pop();
+						kaObj = null;
+					}
+					
 					_cbec = 0;
 					_lastCvTime = Util.getTime;
 					
@@ -523,6 +538,8 @@ package com.laifeng.view.video
 		private var _delayEmptyT:uint = 0;
 		/**buffer 是否是满的 */
 		private var _isBufferFull:Boolean = false;
+		private var _kaList:Array = [];
+		private var _kaInfo:Object = null;
 		
 		
 		

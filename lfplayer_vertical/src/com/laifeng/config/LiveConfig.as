@@ -18,8 +18,8 @@ package  com.laifeng.config
 	 ***********************************************************/
     
     public class LiveConfig {
-		public static var BUILD_TIME                    :String      = "build:16.7.07.0";
-		public static var PLAYER_VERSION           :String      = "3.1.0.2"; //主版本号为2 ， 次版本号为05
+		public static var BUILD_TIME                    :String      = "build:160808_01";
+		public static var PLAYER_VERSION           :String      = "3.3.0.0"; //主版本号为2 ， 次版本号为05
 		
 		/**鼠标滑入 video 的时间*/
 		public static var mouseInTime                  :Number = 0;
